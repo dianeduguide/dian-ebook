@@ -1,0 +1,9 @@
+// Cloudflare settings: serve the files in public/ as a static site.
+// "name" must match the project name in the Cloudflare dashboard.
+{
+  "name": "dian-sales",
+  "compatibility_date": "2026-11-01",
+  "assets": {
+    "directory": "./public"
+  }
+}
