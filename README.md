@@ -49,7 +49,7 @@ same URL keeps working.
 
 1. Push this folder to its own GitHub repository.
 2. In Cloudflare: **Workers & Pages → Create → Import a repository** and pick the repository.
-3. Keep the project name **`dian-sales`** (it must match `name` in `wrangler.jsonc`), leave the
+3. Keep the project name **`dian-ebook`** (it must match `name` in `wrangler.jsonc`), leave the
    build command empty and the deploy command as `npx wrangler deploy`. Click **Deploy**.
 4. Add the download secret, once: open the project's **Settings → Variables and Secrets → Add**,
    choose type **Secret**, name it `DOWNLOAD_SECRET`, and for the value paste a long random
