@@ -1,9 +1,23 @@
-// Cloudflare settings: serve the files in public/ as a static site.
+// Cloudflare settings.
 // "name" must match the project name in the Cloudflare dashboard.
 {
   "name": "dian-sales",
+  "main": "src/worker.js",
   "compatibility_date": "2026-11-01",
+
+  // The page itself: everything in public/ is served as-is.
   "assets": {
     "directory": "./public"
+  },
+
+  // Lets the server code carry the book PDF inside it, so the PDF is never a public file.
+  "rules": [{ "type": "Data", "globs": ["**/*.pdf"], "fallthrough": true }],
+
+  "vars": {
+    // Google Apps Script web app that saves signups into the Google Sheet (see README.md).
+    "SIGNUP_URL": "https://script.google.com/macros/s/AKfycbzXYE6hUr_OUxWczvMf3P6sx7oTf-Jl2pLo3NL8OrD5pb9hCwksYUv9JdSihKQw5Mbj/exec"
   }
+
+  // One more setting lives only in the Cloudflare dashboard, never in this file:
+  // a Secret named DOWNLOAD_SECRET (see README.md, step 3).
 }

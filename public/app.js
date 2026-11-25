@@ -1,10 +1,12 @@
 (function () {
   var form = document.getElementById("lead-form");
   var success = document.getElementById("success");
+  var downloadLink = document.getElementById("download-link");
   var errorBox = form.querySelector(".form-error");
   var button = form.querySelector("button[type=submit]");
   var label = button.querySelector(".btn__label");
   var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+  var STORE_KEY = "dian_book";
 
   document.getElementById("year").textContent = new Date().getFullYear();
 
@@ -15,25 +17,25 @@
     if (field) { field.setAttribute("aria-invalid", "true"); field.focus(); }
   }
 
-  function showSuccess(name) {
+  function showSuccess(name, url) {
     document.getElementById("success-name").textContent = name;
+    downloadLink.href = url;
     form.hidden = true;
     success.hidden = false;
-    success.focus();
-    try { localStorage.setItem("dian_book_name", name); } catch (e) {}
-    // Start the download straight away; the button stays there in case the browser blocks it.
-    document.getElementById("download-link").click();
   }
 
-  // Someone who already signed up on this device goes straight to the download button.
+  // The download link works for an hour. Someone who signed up on this device within
+  // that time sees the download button straight away; after that they see the form again.
   try {
-    var saved = localStorage.getItem("dian_book_name");
-    if (saved) {
-      document.getElementById("success-name").textContent = saved;
-      form.hidden = true;
-      success.hidden = false;
-    }
-  } catch (e) {}
+    localStorage.removeItem("dian_book_name"); // left over from the older version of this page
+    var saved = JSON.parse(localStorage.getItem(STORE_KEY) || "null");
+    if (saved && saved.url && saved.expires * 1000 > Date.now()) showSuccess(saved.name, saved.url);
+    else localStorage.removeItem(STORE_KEY);
+  } catch (e) { /* storage blocked: the form just shows */ }
+
+  if (!form.hidden && new URLSearchParams(window.location.search).get("link") === "expired") {
+    showError("That download link has expired. Enter your details again for a fresh one.");
+  }
 
   form.addEventListener("submit", function (e) {
     e.preventDefault();
@@ -47,32 +49,30 @@
     if (!name) return showError("Please enter your first name.", nameEl);
     if (!EMAIL_RE.test(email)) return showError("That email doesn't look right. Please check it.", emailEl);
 
-    // Bots fill in the hidden field. Pretend it worked and save nothing.
-    if (form.elements.company.value) return showSuccess(name);
-
-    var url = window.DIAN_SIGNUP_URL;
-    if (!url) {
-      console.warn("DIAN_SIGNUP_URL is empty in config.js, so this signup was not saved.");
-      return showSuccess(name);
-    }
-
     button.disabled = true;
     label.textContent = "One moment…";
 
     var params = new URLSearchParams(window.location.search);
-    var body = new URLSearchParams({
-      name: name,
-      email: email,
-      source: params.get("utm_source") || "",
-      campaign: params.get("utm_campaign") || "",
-      page: window.location.pathname
-    });
-
-    fetch(url, { method: "POST", body: body })
+    fetch("/api/signup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: name,
+        email: email,
+        company: form.elements.company.value,
+        source: params.get("utm_source") || "",
+        campaign: params.get("utm_campaign") || "",
+        page: window.location.pathname
+      })
+    })
       .then(function (res) { return res.json(); })
       .then(function (data) {
-        if (!data || !data.ok) throw new Error((data && data.error) || "save failed");
-        showSuccess(name);
+        if (!data || !data.ok || !data.url) throw new Error((data && data.error) || "save failed");
+        try { localStorage.setItem(STORE_KEY, JSON.stringify({ name: name, url: data.url, expires: data.expires })); } catch (e) { /* not remembered */ }
+        showSuccess(name, data.url);
+        success.focus();
+        // Start the download straight away; the button stays there in case the browser blocks it.
+        downloadLink.click();
       })
       .catch(function () {
         showError("Something went wrong on our side. Please check your internet connection and try again.");
