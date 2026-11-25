@@ -73,7 +73,7 @@ Add UTM tags to the links you share and they'll show up in the Sheet's Source an
 ## Good to know
 
 - **Why Google Sheets and not Cloudinary?** Cloudinary stores files (images, video, PDFs); it isn't
-  built to collect form entries. You *can* host the PDF on Cloudinary if you'd like, by uploading it
+  built to collect form entries. You *can* host the PDF on Cloudinary,
   but then anyone with that link can download it without signing up, which is what this setup avoids.
 - **Moving to Mailchimp later:** download the Sheet as CSV and import it into Mailchimp (or any
   email tool). The consent line under the form already tells students they'll get study tips.
