@@ -1,0 +1,7 @@
+# Everyone is welcome to read the page, including search engines and AI assistants.
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /download
+
+Sitemap: https://dianeducation.com/sitemap.xml
